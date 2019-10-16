@@ -1,0 +1,28 @@
+Package: CENA
+Type: Package
+Title: A method for a joint identification of pairwise association together with the particular cell subset of association
+Version: 0.1.0
+Authors@R: c(person("Maya", "Levy", email = "mayalev4444@gmail.com", role = c("aut", "cre")),
+            person("Amit", "Frishberg", email = "amfrishberg@gmail.com", role = c("aut")),
+            person("Irit", "Gav-Viks", email = "iritgv@tauex.tau.ac.il", role = c("aut")))
+Maintainer: Maya Levy <mayalevy4444@gmail.com>
+Description: CENA is a method for a joint identification of pairwise association together with the particular subset of cells in
+	which the association is detected. The algorithm relies on the input cell-state space to ensure a common cell state of all cells in the inferred cell 		subset. In this implementation, CENA tests association between multiple pairs of features: the expression of each gene against one additional meta-data. 
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 3.2.0)
+SystemRequirements: Python 3 should be installed on the machine with the following libraries: numpy, igraph, leidenalg.
+Imports: 
+    parallel,
+    foreach,
+    doSNOW,
+    SDMTools,
+    fields,
+    igraph,
+    Johnson,
+    methods,
+    reticulate,
+    bigmemory,
+    iterators
+RoxygenNote: 6.1.1
