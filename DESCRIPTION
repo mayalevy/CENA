@@ -24,5 +24,6 @@ Imports:
     methods,
     reticulate,
     bigmemory,
-    iterators
+    iterators,
+    data.table
 RoxygenNote: 6.1.1
