@@ -34,7 +34,7 @@ conda install -c vtraag leidenalg
 ## Running CENA
 
 The required input data for CENA should be the cell space (usually obtained using a dimension reduction), a gene expression matrix (genes X cells) and a phenotype vector that we want to find association with.
-####The main functin of the package:
+#### The main functin of the package:
 ```
 CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, no_cores = NULL, k1 = NULL, k2 = 10, minClusterVolume = 30, genesToRun = row.names(geneExpressionDataMatrix), python_path = NULL)
 ```
@@ -45,7 +45,7 @@ In addition, the user may specify the cluster size he wants to discover by the p
 A full description of the parameters and return values can be found in the help page of the package.
 
 
-####Example:
+#### Example:
 Here is an example for the usage of CENA:
 ```
 data(cellSpace)
@@ -62,5 +62,5 @@ Please notice that python path should be specified if not installed in the stand
 * **Amit Frishberg**
 * **Irit Gat Viks**
 
-##Citation
+## Citation
 Maya Levy, Amit Frishberg, Irit Gat-Viks. ***Inferring cellular heterogeneity of associations from single cell genomics*** (submitted).
