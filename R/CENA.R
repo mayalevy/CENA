@@ -464,7 +464,6 @@ CENA_single_gene = function(geneValues, phenotypeData, cellSpace, k1, k2, minClu
 CENA_Main = function(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, genesToRun = row.names(geneExpressionDataMatrix), 
                      no_cores = NULL, k1 = NULL, k2 = 10, minClusterVolume = 30, python_path = NULL, clusterDetails = F) {
   
-  print(minClusterVolume)
   if (is.null(k1)) {
     k1 = ceiling(0.01 * dim(cellSpace)[1])
   }
@@ -699,8 +698,8 @@ robustness = function(prediction,geneExpressionDataMatrix, phenotypeData, cellSp
 CENA = function(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, genesToRun = row.names(geneExpressionDataMatrix), 
                 no_cores = NULL, k1 = NULL, k2 = 10, minClusterVolume = 30, python_path = NULL) {
     print("Running CENA (This might take a while):")
-    the_result = CENA_Main(geneExpressionDataMatrix, phenotypeData, cellSpace, genesToRun, no_cores, k1, k2, minClusterVolume,
-        resolution_parameter, python_path)
+    the_result = CENA_Main(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter,genesToRun, 
+                           no_cores, k1, k2, minClusterVolume, python_path)
     ##### Combining cell predictions #####
     print("Finalizing...")
     return(the_result)
