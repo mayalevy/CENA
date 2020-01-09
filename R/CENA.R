@@ -575,17 +575,16 @@ CENA_Main = function(geneExpressionDataMatrix, phenotypeData, cellSpace, resolut
 #' @param phenotypeData A vector containing the meta-data levels of each of the cells.
 #' @param cellSpace The cell space corresponding to the single-cell data. It should be a matrix for a 2 dimensional space where each column represents a dimension and each row represents a cell.
 #' @param resolution_parameter the resolution of the Leiden algorithm.
-#' @param genesToRun A vector of genes for robustness will be calculated. Due to relatively long running times, it is advised to choose only genes with informative clusters inferred by CENA.
+#' @param genesToRun A vector of genes for which robustness will be calculated. Due to relatively long running times, it is advised to choose only genes with informative clusters inferred by CENA.
 #' @param numberOfRepeats Number of CENA runs used to calculate cluster robustness. The default value is 100. 
 #' @param minCoverage The minimum coverage required for matching between the predicted clusters and the clusters in each iteration. The default value is 0.5.
 #' @param ... All other parameters used by CENA.
-#' @return Predictions for each gene-vs-metadata analysis.
-#' For each such pair, the prediction includes details about the association (here, ‘cluster_information’) as well as details about the cell subset of the association (here, termed ‘cluster’).
+#' @return A matrix where rows are genes and columns are different robustness measures.
 #' \describe{
-#' \itemize{ A matrix where rows are genes and columns are different robustness measures.
-#'  \item{Repetitivity}{A fraction representing how much the predicted gene clusters are shared across iterations. }
-#'  \item{Average rank mean}{ Average cluster scores. Values range between 0 to 1, where a lower value means the perdicted gene cluster is more likely to be selected across iterations. }
-#'  \item{Average rank Sd}{ The standard variation of cluster scores across iterations. }
+#' \itemize{
+#'  \item{Repetitivity: }{A fraction representing how much the predicted gene clusters are shared across iterations. }
+#'  \item{Average rank mean: }{ Average cluster scores. Values range between 0 to 1, where a lower value means the perdicted gene cluster is more likely to be selected across iterations. }
+#'  \item{Average rank Sd: }{ The standard variation of cluster scores across iterations. }
 #'  }
 #'}
 #' @examples
