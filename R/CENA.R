@@ -613,8 +613,8 @@ robustness = function(prediction,geneExpressionDataMatrix, phenotypeData, cellSp
     currSetOfLists = CENAForRobustness[[currGeneIndex]]
     currSetOfLists[order(unlist(lapply(currSetOfLists, function(currSelection){
       cellNumbersSelected = as.numeric(as.matrix(gsub("cell_","",currSelection)))
-      currGeneExp = ref_matrix[genesToRunRep[currGeneIndex],cellNumbersSelected]
-      currPhen = cellPhenotypes[cellNumbersSelected]
+      currGeneExp = geneExpressionDataMatrix[genesToRunRep[currGeneIndex],cellNumbersSelected]
+      currPhen = phenotypeData[cellNumbersSelected]
       summary(lm(currGeneExp~currPhen))$r.squared
     })),decreasing = T)]
   })
@@ -693,7 +693,6 @@ robustness = function(prediction,geneExpressionDataMatrix, phenotypeData, cellSp
 #' data(phenotypeData)
 #' # running CENA on 5 genes
 #' results = CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
-#' robustnessResults = CENA(results, geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
 #' @export
 CENA = function(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, genesToRun = row.names(geneExpressionDataMatrix), 
                 no_cores = NULL, k1 = NULL, k2 = 10, minClusterVolume = 30, python_path = NULL) {

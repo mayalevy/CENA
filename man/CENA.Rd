@@ -66,5 +66,4 @@ data(geneExpressionDataMatrix)
 data(phenotypeData)
 # running CENA on 5 genes
 results = CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
-robustnessResults = CENA(results, geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
 }
