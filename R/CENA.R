@@ -584,6 +584,7 @@ CENA_Main = function(geneExpressionDataMatrix, phenotypeData, cellSpace, resolut
 #' @param phenotypeData A vector containing the meta-data levels of each of the cells.
 #' @param cellSpace The cell space corresponding to the single-cell data. It should be a matrix for a 2 dimensional space where each column represents a dimension and each row represents a cell.
 #' @param resolution_parameter the resolution of the Leiden algorithm.
+#' @param genesToRun A vector of genes for robustness will be calculated. Due to relatively long running times, it is advised to choose only genes with informative clusters inferred by CENA.
 #' @param numberOfRepeats Number of CENA runs used to calculate cluster robustness. The default value is 100. 
 #' @param minCoverage The minimum coverage required for matching between the predicted clusters and the clusters in each iteration. The default value is 0.5.
 #' @param ... All other parameters used by CENA.
@@ -605,46 +606,55 @@ CENA_Main = function(geneExpressionDataMatrix, phenotypeData, cellSpace, resolut
 #' robustnessResults = robustness(results, geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
 #' @export
 robustness = function(prediction,geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, genesToRun = row.names(geneExpressionDataMatrix),numberOfRepeats = 100, minCoverage = 0.5,...){ 
-  print("Running robustness check (This might take a while):")
-  genesToRunRep = rep(genesToRun,numberOfRepeats)
-  CENAForRobustness = CENA_Main(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, genesToRunRep, ..., clusterDetails = T)
-  
-  sortedAllNodes = lapply(1:length(genesToRunRep),function(currGeneIndex){
-    currSetOfLists = CENAForRobustness[[currGeneIndex]]
-    currSetOfLists[order(unlist(lapply(currSetOfLists, function(currSelection){
-      cellNumbersSelected = as.numeric(as.matrix(gsub("cell_","",currSelection)))
-      currGeneExp = geneExpressionDataMatrix[genesToRunRep[currGeneIndex],cellNumbersSelected]
-      currPhen = phenotypeData[cellNumbersSelected]
-      summary(lm(currGeneExp~currPhen))$r.squared
-    })),decreasing = T)]
-  })
-  repScores = unlist(lapply(1:length(genesToRunRep), function(currGeneIndex){
-    allNodesSelected = sortedAllNodes[[currGeneIndex]]
-    originalCells = prediction$cluster[[genesToRunRep[currGeneIndex]]]
-    scores = unlist(lapply(allNodesSelected,function(currSelection){
-      cellNumbersSelected = as.numeric(as.matrix(gsub("cell_","",currSelection)))
-      length(intersect(cellNumbersSelected,originalCells))/length(originalCells)
+  if(length(which(unlist(lapply(1:length(genesToRun),function(i){is.na(prediction$cluster[i])}))))>0){
+    print("All genes must have a predicted cluster!")
+  }else{
+    print("Running robustness check (This might take a while):")
+    genesToRunRep = rep(genesToRun,numberOfRepeats)
+    CENAForRobustness = CENA_Main(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, genesToRunRep, ..., clusterDetails = T)
+    
+    sortedAllNodes = lapply(1:length(genesToRunRep),function(currGeneIndex){
+      currSetOfLists = CENAForRobustness[[currGeneIndex]]
+      if(length(currSetOfLists)==0){
+        currSetOfLists
+      }else{
+        currSetOfLists[order(unlist(lapply(currSetOfLists, function(currSelection){
+          cellNumbersSelected = as.numeric(as.matrix(gsub("cell_","",currSelection)))
+          currGeneExp = geneExpressionDataMatrix[genesToRunRep[currGeneIndex],cellNumbersSelected]
+          currPhen = phenotypeData[cellNumbersSelected]
+          summary(lm(currGeneExp~currPhen))$r.squared
+        })),decreasing = T)]  
+      }
+    })
+    repScores = unlist(lapply(1:length(genesToRunRep), function(currGeneIndex){
+      allNodesSelected = sortedAllNodes[[currGeneIndex]]
+      if(length(allNodesSelected)==0){ return(NA) }
+      originalCells = prediction$cluster[[genesToRunRep[currGeneIndex]]]
+      scores = unlist(lapply(allNodesSelected,function(currSelection){
+        cellNumbersSelected = as.numeric(as.matrix(gsub("cell_","",currSelection)))
+        length(intersect(cellNumbersSelected,originalCells))/length(originalCells)
+      }))
+      if(max(scores)>minCoverage){
+        which.max(scores)
+      }else{
+        NA
+      }
     }))
-    if(max(scores)>minCoverage){
-      which.max(scores)
-    }else{
-      NA
-    }
-  }))
-  
-  meanRatio = as.data.frame(t(do.call(cbind, lapply(unique(genesToRunRep), function(currGene){
-    nonNAs = which(!is.na(repScores[currGene==genesToRunRep]))
-    repetitivity = length(nonNAs)/numberOfRepeats
-    ratioForClusters = repScores[which(genesToRunRep == currGene)[nonNAs]]/
-      unlist(lapply(1:length(genesToRunRep), function(currGeneIndex){
-        length(CENAForRobustness[[currGeneIndex]])
-      }))[which(currGene==genesToRunRep)[nonNAs]]
-    c(repetitivity, mean(ratioForClusters),sd(ratioForClusters))
-  }))))
-  colnames(meanRatio) = c("Repetitivity","Average rank mean","Average rank Sd")
-  row.names(meanRatio) = genesToRun
-  
-  return(meanRatio)
+    
+    meanRatio = as.data.frame(t(do.call(cbind, lapply(unique(genesToRunRep), function(currGene){
+      nonNAs = which(!is.na(repScores[currGene==genesToRunRep]))
+      repetitivity = length(nonNAs)/numberOfRepeats
+      ratioForClusters = repScores[which(genesToRunRep == currGene)[nonNAs]]/
+        unlist(lapply(1:length(genesToRunRep), function(currGeneIndex){
+          length(CENAForRobustness[[currGeneIndex]])
+        }))[which(currGene==genesToRunRep)[nonNAs]]
+      c(repetitivity, mean(ratioForClusters),sd(ratioForClusters))
+    }))))
+    colnames(meanRatio) = c("Repetitivity","Average rank mean","Average rank Sd")
+    row.names(meanRatio) = genesToRun
+    
+    return(meanRatio) 
+  }
 }
 
 

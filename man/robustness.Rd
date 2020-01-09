@@ -21,6 +21,8 @@ The algorithm assumes the order of the cells in this scRNA-seq data matrix is th
 
 \item{resolution_parameter}{the resolution of the Leiden algorithm.}
 
+\item{genesToRun}{A vector of genes for robustness will be calculated. Due to relatively long running times, it is advised to choose only genes with informative clusters inferred by CENA.}
+
 \item{numberOfRepeats}{Number of CENA runs used to calculate cluster robustness. The default value is 100.}
 
 \item{minCoverage}{The minimum coverage required for matching between the predicted clusters and the clusters in each iteration. The default value is 0.5.}
