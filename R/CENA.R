@@ -564,18 +564,9 @@ CENA_Main = function(geneExpressionDataMatrix, phenotypeData, cellSpace, resolut
   return(final_geneResults)
 }
 
-#' The Cell Niche Associations (CENA) algorithm
+#' Robustness check for CENA predictions
 #'
-#' CENA is a method for a joint identification of pairwise association together with
-#' the particular subset of cells in which the association is detected.
-#' CENA does not rely on predefined cell subset but only requires that cells in the
-#' identified cell subset would have a similar cell state. The algorithm relies on the
-#' input cell-state space to ensure a common cell state of all cells in the inferred cell subset.
-#' In this implementation, CENA tests association between multiple pairs of features:
-#' one of these features is the expression of a gene (data from scRNA-sequencing)
-#' and one additional feature is meta-data about each cell.
-#' The algorithm can run on a list of genes, associating each of these gene with the same meta-data feature.
-#' Note that python3 should be installed on the machine, with the following libraries: numpy, igraph, leidenalg.
+#' The robustness function runs CENA multiple times, for a small subset of the genes, and provides quantitative robustness scores for their predicted clusters across iterations.
 #'
 #' @param prediction The result of the original CENA run.
 #' @param geneExpressionDataMatrix A matrix containing the single-cell RNA-seq data.
@@ -603,7 +594,7 @@ CENA_Main = function(geneExpressionDataMatrix, phenotypeData, cellSpace, resolut
 #' data(phenotypeData)
 #' # running CENA on 5 genes
 #' results = CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
-#' robustnessResults = robustness(results, geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
+#' robustnessResults = robustness(results, geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, genesToRun = row.names(geneExpressionDataMatrix), no_cores = 1)
 #' @export
 robustness = function(prediction,geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, genesToRun = row.names(geneExpressionDataMatrix),numberOfRepeats = 100, minCoverage = 0.5,...){ 
   if(length(which(unlist(lapply(1:length(genesToRun),function(i){is.na(prediction$cluster[i])}))))>0){
