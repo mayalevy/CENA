@@ -33,9 +33,9 @@ conda install -c vtraag leidenalg
 ```
 Please add the python command to the PATH, such that it will be recognized when you type python in the terminal.
 
-####Environment validation
+#### Environment validation
 Before moving to running CENA, please validate by the following commands that everything is fine.
-#####Python is installed correcly
+##### Python is installed correcly
 Please type the following commands in the terminal:
 ```
 python # running python for making sure it works fine
@@ -44,7 +44,7 @@ import igraph # making sure the pakcage igraph is installed correctly
 import leidenalg # making sure the pakcage leidenalg is installed correctly
 ```
 If python is not recognized, make sure you have added the python path to the evnironment path variable (PATH). If one of the modules is not recognize please make sure that their installation succeed and was done on the current python.
-#####R and python are working fine together
+##### R and python are working fine together
 Please open R console and type the following R commands:
 ```
 install.packages("reticulate") #reticulate library allows running python code
@@ -60,7 +60,7 @@ reticulate::use_python(**the python path**)# change the python path
 ```
 Note: Reticulate has a bug. use_python does not work in Windows, so Windows uses may make sure the installation of the python packages is done on the default python (you can change the default python by adding the python the the beginnig of the environment PATH)
 
-####CENA installation
+#### CENA installation
 For installing CENA from github, please open an R console, and type to following commands:
 ```
 install.packages("devtools")
@@ -97,8 +97,9 @@ Please notice that python path should be specified if not installed in the stand
 #### Robustness Analysis:
 After running CENA on many genes and choosing a few of them, one can run a robustness analysis for specific genes for checking the robustness of the gene results.
 *robustness* function runs the analysis multiple times for a specific gene and returns the percentage of runs in which the cluster was found again in adittion to a score in the rang of 0-1 which represents the cluster score (low score means good score).
-#####example
+##### Example:
 ```
+library("CENA")
 data(cellSpace)
 data(geneExpressionDataMatrix)
 data(phenotypeData)
