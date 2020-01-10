@@ -11,7 +11,8 @@ CENA can be installed on Mac, Windows or Linux platforms by the instructions bel
 
 CENA is based on R but also requires python3 for running.
 For Windows, we strongly reccommend that python will be installed with conda (and not pure python) to ease the installation progress of the dependent libraries.
-In addition to R, for Windows users, Rtools should be installed.
+In addition to R, for Windows users, Rtools should bIn addition to R, for Windows users, Rtools should be installed.
+e installed.
 
 
 
@@ -30,7 +31,42 @@ conda install numpy
 conda install -c vtraag python-igraph
 conda install -c vtraag leidenalg
 ```
+Please add the python command to the PATH, such that it will be recognized when you type python in the terminal.
 
+####Environment validation
+Before moving to running CENA, please validate by the following commands that everything is fine.
+#####Python is installed correcly
+Please type the following commands in the terminal:
+```
+python # running python for making sure it works fine
+(moved to the python console)
+import igraph # making sure the pakcage igraph is installed correctly
+import leidenalg # making sure the pakcage leidenalg is installed correctly
+```
+If python is not recognized, make sure you have added the python path to the evnironment path variable (PATH). If one of the modules is not recognize please make sure that their installation succeed and was done on the current python.
+#####R and python are working fine together
+Please open R console and type the following R commands:
+```
+packages.install("reticulate") #reticulate library allows running python code
+library(reticulate)
+reticulate::import("igraph") #makes sure igraph is installed correctly
+reticulate::import("leidenalg") # makes sure leidenalg is installed correctly
+```
+In case it returns that a module is not found, make sure the packages are installed on python, and that you are using the correct python.
+Reticulate uses the default python, in case you have many python versions on our computer, please install these packages on the default one (the one you get when you type which python), or change the reticulate to work with another python by typing 
+```
+reticulate::use_python(**the python path**)
+```
+Note: Reticulate has a bug and use_python does not work in Windows, so Windows uses may make sure the installation of the python packages is done on the default python (you can change the default python by adding the python the the beginnig of the environment PATH)
+
+####CENA installation
+For install CENA from github, please open an R console, and type to following commands:
+```
+install.packages("devtools")
+library("devtools")
+install_github("mayalevy/CENA")
+library("CENA")
+```
 ## Running CENA
 
 The required input data for CENA should be the cell space (usually obtained using a dimension reduction), a gene expression matrix (genes X cells) and a phenotype vector that we want to find association with.
@@ -43,6 +79,7 @@ By changing the parameters of the CENA function, the user may improve the result
 ** k1, k2 ** are responsible of the initial graph building, and hence for the connectivity of the graph and to the number of its edges. When running many genes, for leverage the running time, the user may take a rather small k2 for initial run which will take a sample of the whole graph, and then, for the more interesting genes choose a higher k2, which may take more time but will be more reliable.
 In addition, the user may specify the cluster size he wants to discover by the parameter **minClusterVolume**.
 A full description of the parameters and return values can be found in the help page of the package.
+Note: in case of not using the default python, you should specify the location of python by the parameter python_path.
 
 
 #### Example:
@@ -55,7 +92,17 @@ data(phenotypeData)
 results = CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
 ```
 Please notice that python path should be specified if not installed in the standard location
-
+#### Robustness Analysis:
+After running CENA on many genes and choosing a few of them, one can run a robustness analysis for specific genes for checking the robustness of the gene results.
+*robustness* function runs the analysis multiple times for a specific gene and returns the percentage of runs in which the cluster was found again in adittion to a score in the rang of 0-1 which represents the cluster score (low score means good score).
+#####example
+```
+data(cellSpace)
+data(geneExpressionDataMatrix)
+data(phenotypeData)
+results = CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
+robustnessResults = robustness(results, geneExpressionDataMatrix,phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1, genesToRun = row.names(geneExpressionDataMatrix))
+```
 ## Authors
 
 * **Maya Levy**
