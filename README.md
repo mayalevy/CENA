@@ -47,7 +47,7 @@ If python is not recognized, make sure you have added the python path to the evn
 #####R and python are working fine together
 Please open R console and type the following R commands:
 ```
-packages.install("reticulate") #reticulate library allows running python code
+install.packages("reticulate") #reticulate library allows running python code
 library(reticulate)
 reticulate::import("igraph") #makes sure igraph is installed correctly
 reticulate::import("leidenalg") # makes sure leidenalg is installed correctly
@@ -55,12 +55,13 @@ reticulate::import("leidenalg") # makes sure leidenalg is installed correctly
 In case it returns that a module is not found, make sure the packages are installed on python, and that you are using the correct python.
 Reticulate uses the default python, in case you have many python versions on our computer, please install these packages on the default one (the one you get when you type which python), or change the reticulate to work with another python by typing 
 ```
-reticulate::use_python(**the python path**)
+py_config() # gives the direction of the current python
+reticulate::use_python(**the python path**)# change the python path
 ```
-Note: Reticulate has a bug and use_python does not work in Windows, so Windows uses may make sure the installation of the python packages is done on the default python (you can change the default python by adding the python the the beginnig of the environment PATH)
+Note: Reticulate has a bug. use_python does not work in Windows, so Windows uses may make sure the installation of the python packages is done on the default python (you can change the default python by adding the python the the beginnig of the environment PATH)
 
 ####CENA installation
-For install CENA from github, please open an R console, and type to following commands:
+For installing CENA from github, please open an R console, and type to following commands:
 ```
 install.packages("devtools")
 library("devtools")
@@ -70,7 +71,7 @@ library("CENA")
 ## Running CENA
 
 The required input data for CENA should be the cell space (usually obtained using a dimension reduction), a gene expression matrix (genes X cells) and a phenotype vector that we want to find association with.
-#### The main functin of the package:
+#### The main function of the package:
 ```
 CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, no_cores = NULL, k1 = NULL, k2 = 10, minClusterVolume = 30, genesToRun = row.names(geneExpressionDataMatrix), python_path = NULL)
 ```
@@ -79,12 +80,13 @@ By changing the parameters of the CENA function, the user may improve the result
 ** k1, k2 ** are responsible of the initial graph building, and hence for the connectivity of the graph and to the number of its edges. When running many genes, for leverage the running time, the user may take a rather small k2 for initial run which will take a sample of the whole graph, and then, for the more interesting genes choose a higher k2, which may take more time but will be more reliable.
 In addition, the user may specify the cluster size he wants to discover by the parameter **minClusterVolume**.
 A full description of the parameters and return values can be found in the help page of the package.
-Note: in case of not using the default python, you should specify the location of python by the parameter python_path.
+**python_path** - in case of not using the default python, you should specify the location of python by this parameter.
 
 
 #### Example:
 Here is an example for the usage of CENA:
 ```
+library("CENA")
 data(cellSpace)
 data(geneExpressionDataMatrix)
 data(phenotypeData)
@@ -101,7 +103,7 @@ data(cellSpace)
 data(geneExpressionDataMatrix)
 data(phenotypeData)
 results = CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
-robustnessResults = robustness(results, geneExpressionDataMatrix,phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1, genesToRun = row.names(geneExpressionDataMatrix))
+robustnessResults = robustness(results, geneExpressionDataMatrix,phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1, genesToRun = row.names(geneExpressionDataMatrix)[4:5])
 ```
 ## Authors
 
