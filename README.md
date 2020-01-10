@@ -71,7 +71,7 @@ library("CENA")
 ## Running CENA
 
 The required input data for CENA should be the cell space (usually obtained using a dimension reduction), a gene expression matrix (genes X cells) and a phenotype vector that we want to find association with.
-#### The main function of the package:
+### The main function of the package:
 ```
 CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, no_cores = NULL, k1 = NULL, k2 = 10, minClusterVolume = 30, genesToRun = row.names(geneExpressionDataMatrix), python_path = NULL)
 ```
@@ -83,7 +83,7 @@ A full description of the parameters and return values can be found in the help 
 **python_path** - in case of not using the default python, you should specify the location of python by this parameter.
 
 
-#### Example:
+### Example:
 Here is an example for the usage of CENA:
 ```
 library("CENA")
