@@ -6,7 +6,7 @@
 \usage{
 CENA(geneExpressionDataMatrix, phenotypeData, cellSpace,
   resolution_parameter, genesToRun = row.names(geneExpressionDataMatrix),
-  no_cores = NULL, k1 = NULL, k2 = 10, minClusterVolume = 30,
+  no_cores = NULL, k1 = NULL, k2 = 10, Tw = 30,
   python_path = NULL)
 }
 \arguments{
@@ -18,18 +18,18 @@ The algorithm assumes the order of the cells in this scRNA-seq data matrix is th
 
 \item{cellSpace}{The cell space corresponding to the single-cell data. It should be a matrix for a 2 dimensional space where each column represents a dimension and each row represents a cell.}
 
-\item{resolution_parameter}{the resolution of the Leiden algorithm.}
+\item{resolution_parameter}{The resolution of the Leiden algorithm. Cutoff as desired; Higher values provide smaller clusters.}
 
 \item{genesToRun}{A vector of genes for which associations should be inferred. The default value is all genes in the input scRNA-seq matrix.
 However, it is recommended to run on a selected number of genes, since the analysis may take a while.}
 
 \item{no_cores}{A number for the amount of cores which will be used for the analysis. The defalt (NULL) is total number of cores minus 1.}
 
-\item{k1}{The number of cells in a bin. The default value is 1 percentage of the cells.}
+\item{k1}{The number of cells in a bin. The default value is 1 percentage of the cells. k1 should be kept relatively small.}
 
-\item{k2}{The average number of neighbors of a cell should be k2. The default value is 10.}
+\item{k2}{The average number of neighbors of a cell should be k2. The default value is 10. k2 have relatively small effect on results.}
 
-\item{minClusterVolume}{The minimum cell-subset size. The default value is 30.}
+\item{Tw}{The minimum cell-subset size. The default value is 30. Cutoff as desired; high values filter out small subsets.}
 
 \item{python_path}{The function uses python in order to run.
 This is the location of python on the machine. If not specified, the path is the default python path on the machine.

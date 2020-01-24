@@ -73,14 +73,15 @@ library("CENA")
 The required input data for CENA should be the cell space (usually obtained using a dimension reduction), a gene expression matrix (genes X cells) and a phenotype vector that we want to find association with.
 ### The main function of the package:
 ```
-CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, no_cores = NULL, k1 = NULL, k2 = 10, minClusterVolume = 30, genesToRun = row.names(geneExpressionDataMatrix), python_path = NULL)
+CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, no_cores = NULL, k1 = NULL, k2 = 10, Tw = 30, genesToRun = row.names(geneExpressionDataMatrix), python_path = NULL)
 ```
-By changing the parameters of the CENA function, the user may improve the results and the performance of the algorithm.
-** resolution_parameter** is the resolution parameter of the community detection algorithm Leiden which is responsible for more communities.
-** k1, k2 ** are responsible of the initial graph building, and hence for the connectivity of the graph and to the number of its edges. When running many genes, for leverage the running time, the user may take a rather small k2 for initial run which will take a sample of the whole graph, and then, for the more interesting genes choose a higher k2, which may take more time but will be more reliable.
-In addition, the user may specify the cluster size he wants to discover by the parameter **minClusterVolume**.
+By changing the parameters of CENA function, the user may improve the results and the performance of the algorithm.
+* **resolution_parameter** is the resolution parameter of the community detection algorithm Leiden which is responsible for more communities. Cutoff as desired; Higher values provide smaller clusters.
+* **k1, k2** are responsible of the initial graph building, and hence for the connectivity of the graph and to the number of its edges. k1 should be kept relatively small. Default value of k1 is 1% of the cells. When running many genes, for leverage the running time, the user may take a rather small k2 for initial run which will take a sample of the whole graph, and then, for the more interesting genes choose a higher k2, which may take more time but will be more reliable. k2 have relatively small effect on results. Default value of k2 is 10.
+* **Tw** is the cluster size that the user wants to discover. Cutoff as desired; high values filter out small subsets. Default value is 30
+* **python_path** - in case of not using the default python, you should specify the location of python by this parameter.
+
 A full description of the parameters and return values can be found in the help page of the package.
-**python_path** - in case of not using the default python, you should specify the location of python by this parameter.
 
 
 #### Example:

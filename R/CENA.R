@@ -302,13 +302,13 @@ getClusterGenes = function(geneExpressionDataMatrix, cellClustersIndexes, numOfG
 # readRDS('/Users/mayalevy/Downloads/MarkerSelection/Runs/T-cell_1529229592/finalResults/temps/phenVectorScoresOriginal')
 # names(phenotypeData) = colnames(geneExpressionDataMatrix) resultsFolderPath =
 # '/Users/mayalevy/Downloads/MarkerSelection/Runs/T-cell_1529229592/finalResults' discrete_phenotype = TRUE
-# ratioToTiniesBin = 1 minClusterVolume = 15 geneValues = geneExpressionDataMatrix[geneName,] k1 = 5 k2 = 15
+# ratioToTiniesBin = 1 Tw = 15 geneValues = geneExpressionDataMatrix[geneName,] k1 = 5 k2 = 15
 # CENA_single_gene(geneValues, phenotypeData, cellSpace, resultsFolderPath, discrete_phenotype, k1, k2, ratioToTiniesBin,
-# minClusterVolume) # public
+# Tw) # public
 
 # CENA run for a single gene
 #' @keywords internal
-CENA_single_gene = function(geneValues, phenotypeData, cellSpace, k1, k2, minClusterVolume, nonZeroMatrix, resolution_parameter,
+CENA_single_gene = function(geneValues, phenotypeData, cellSpace, k1, k2, Tw, nonZeroMatrix, resolution_parameter,
     python_path) {
     # normalize geneExpression vector
     geneVectorScores = (geneValues - mean(geneValues))/sd(geneValues)
@@ -406,7 +406,7 @@ CENA_single_gene = function(geneValues, phenotypeData, cellSpace, k1, k2, minClu
         clusteringEdgesLabels = c()
     }
 
-    nodesPerClusters = nodesPerClusters[lapply(nodesPerClusters, length) > minClusterVolume]  ############################ CHANGE ACCORDING TO CLUSTERING RESULT
+    nodesPerClusters = nodesPerClusters[lapply(nodesPerClusters, length) > Tw]  ############################ CHANGE ACCORDING TO CLUSTERING RESULT
     # filter out groups with less that 3 phenotypes
     nodesPerClusters = lapply(nodesPerClusters, function(phens) {
         chosenGroupIndexes = which(rownames(adjacencyNew) %in% phens)
@@ -461,66 +461,66 @@ CENA_single_gene = function(geneValues, phenotypeData, cellSpace, k1, k2, minClu
 
 # the run of CENA algorithm - run parrallely
 #' @keywords internal
-CENA_Main = function(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, genesToRun = row.names(geneExpressionDataMatrix), 
-                     no_cores = NULL, k1 = NULL, k2 = 10, minClusterVolume = 30, python_path = NULL, clusterDetails = F) {
-  
+CENA_Main = function(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, genesToRun = row.names(geneExpressionDataMatrix),
+                     no_cores = NULL, k1 = NULL, k2 = 10, Tw = 30, python_path = NULL, clusterDetails = F) {
+
   if (is.null(k1)) {
     k1 = ceiling(0.01 * dim(cellSpace)[1])
   }
   colnames(geneExpressionDataMatrix) = rownames(cellSpace) = names(phenotypeData) = paste("cell", seq(ncol(geneExpressionDataMatrix)),
                                                                                           sep = "_")
-  # if(!is.null(minClusterVolume) && minClusterVolume > 0 && minClusterVolume < 1) { minClusterVolume =
-  # round(minClusterVolume * nrow(cellSpace)) } else { minClusterVolume = 0 }
-  
+  # if(!is.null(Tw) && Tw > 0 && Tw < 1) { Tw =
+  # round(Tw * nrow(cellSpace)) } else { Tw = 0 }
+
   # sparsify the distMatrix by bins
   alpha = 1.2
   beta = 0.6
   nonZeroMatrix = sparsifingDistanceMatrix(bigmemory::as.big.matrix(fields::rdist(cellSpace, cellSpace)), cellSpace, alpha,
                                            beta, k1)
   gc(FALSE)
-  
+
   ##### Main algorithm runs #####
   if (is.null(no_cores)) {
     no_cores = max(1, parallel::detectCores() - 1)
   }
   cl <- parallel::makeCluster(no_cores)
-  
-  parallel::clusterExport(cl = cl, varlist = c("cellSpace", "k1", "k2", "minClusterVolume", "CENA_single_gene", "resolution_parameter",
+
+  parallel::clusterExport(cl = cl, varlist = c("cellSpace", "k1", "k2", "Tw", "CENA_single_gene", "resolution_parameter",
                                                "python_path", "expand.grid.unique", "getEdgesMatrix", "getNodesForEachCluster", "runJohnson", "normalizeData", "computeNormalStats",
                                                "getJohnsonStatsAlt", "get_edge_name", "calc_p_value_pnorm", "calc_r_and_p_value", "analyzeClustersFunction", "getClusterGenes",
                                                "nonZeroMatrix"), envir = environment())
   doSNOW::registerDoSNOW(cl)
   # progress bar
-  
+
   pb <- utils::txtProgressBar(min = 1, max = length(genesToRun), style = 3)
   progress <- function(n) setTxtProgressBar(pb, n)
   opts <- list(progress = progress)
   # t = proc.time()
   `%dopar2%` <- foreach::`%dopar%`
   `%do2%` <- foreach::`%do%`
-  
+
   iterations = iterators::iter(geneExpressionDataMatrix[genesToRun, ], by = "row")
   # geneNameNum = NULL geneResults <- foreach::foreach(geneStat = iterations, .options.snow = opts) %do2% {
   geneResultsBasic <- foreach::foreach(geneStat = iterations, .options.snow = opts) %dopar2% {
     # geneResults <- for(i in 1:dim(geneExpressionDataMatrix)[1]) { geneStat = geneExpressionDataMatrix[i,] geneName =
     # genesToRun[i] print(geneName)
     gc(FALSE)
-    CENA_single_gene(as.numeric(geneStat), phenotypeData, cellSpace, k1, k2, minClusterVolume, nonZeroMatrix, resolution_parameter,
+    CENA_single_gene(as.numeric(geneStat), phenotypeData, cellSpace, k1, k2, Tw, nonZeroMatrix, resolution_parameter,
                      python_path)
     # setTxtProgressBar(pb, geneNameNum) result_gene
-    
+
   }
   # print(proc.time() - t)
   parallel::stopCluster(cl)
   close(pb)
-  
+
   geneResults = lapply(geneResultsBasic, function(x) {
     x$res
   })
   geneAllNodes = lapply(geneResultsBasic, function(x) {
     x$nodesPerClusters
   })
-  
+
   # arrange output
   geneNames = genesToRun
   # cluster information
@@ -541,7 +541,7 @@ CENA_Main = function(geneExpressionDataMatrix, phenotypeData, cellSpace, resolut
     } else {
       return(c(x$cluster))
     }
-    
+
   })
   cluster[sapply(cluster, is.null)] <- NULL
   names(cluster) = geneNames
@@ -556,7 +556,7 @@ CENA_Main = function(geneExpressionDataMatrix, phenotypeData, cellSpace, resolut
   # })
   # cluster_statistics[sapply(cluster_statistics, is.null)] <- NULL
   # names(cluster_statistics) = geneNames
-  
+
   if(clusterDetails){
     return(geneAllNodes)
   }
@@ -576,7 +576,7 @@ CENA_Main = function(geneExpressionDataMatrix, phenotypeData, cellSpace, resolut
 #' @param cellSpace The cell space corresponding to the single-cell data. It should be a matrix for a 2 dimensional space where each column represents a dimension and each row represents a cell.
 #' @param resolution_parameter the resolution of the Leiden algorithm.
 #' @param genesToRun A vector of genes for which robustness will be calculated. Due to relatively long running times, it is advised to choose only genes with informative clusters inferred by CENA.
-#' @param numberOfRepeats Number of CENA runs used to calculate cluster robustness. The default value is 100. 
+#' @param numberOfRepeats Number of CENA runs used to calculate cluster robustness. The default value is 100.
 #' @param minCoverage The minimum coverage required for matching between the predicted clusters and the clusters in each iteration. The default value is 0.5.
 #' @param ... All other parameters used by CENA.
 #' @return A matrix where rows are genes and columns are different robustness measures.
@@ -595,14 +595,18 @@ CENA_Main = function(geneExpressionDataMatrix, phenotypeData, cellSpace, resolut
 #' results = CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
 #' robustnessResults = robustness(results, geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, genesToRun = row.names(geneExpressionDataMatrix), no_cores = 1)
 #' @export
-robustness = function(prediction,geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, genesToRun = row.names(geneExpressionDataMatrix),numberOfRepeats = 100, minCoverage = 0.5,...){ 
-  if(length(which(unlist(lapply(1:length(genesToRun),function(i){is.na(prediction$cluster[i])}))))>0){
+robustness = function(prediction,geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, genesToRun = row.names(geneExpressionDataMatrix),numberOfRepeats = 100, minCoverage = 0.5,...){
+  indexesToRun = which(names(prediction$cluster) %in% genesToRun)
+  prediction$cluster = prediction$cluster[indexesToRun]
+  if(length(indexesToRun) != length(genesToRun) |
+     length(prediction$cluster)==0|
+     length(which(unlist(lapply(prediction$cluster,function(cluster){is.na(cluster)}))))>0) {
     print("All genes must have a predicted cluster!")
   }else{
     print("Running robustness check (This might take a while):")
     genesToRunRep = rep(genesToRun,numberOfRepeats)
     CENAForRobustness = CENA_Main(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, genesToRunRep, ..., clusterDetails = T)
-    
+
     sortedAllNodes = lapply(1:length(genesToRunRep),function(currGeneIndex){
       currSetOfLists = CENAForRobustness[[currGeneIndex]]
       if(length(currSetOfLists)==0){
@@ -613,7 +617,7 @@ robustness = function(prediction,geneExpressionDataMatrix, phenotypeData, cellSp
           currGeneExp = geneExpressionDataMatrix[genesToRunRep[currGeneIndex],cellNumbersSelected]
           currPhen = phenotypeData[cellNumbersSelected]
           summary(lm(currGeneExp~currPhen))$r.squared
-        })),decreasing = T)]  
+        })),decreasing = T)]
       }
     })
     repScores = unlist(lapply(1:length(genesToRunRep), function(currGeneIndex){
@@ -630,7 +634,7 @@ robustness = function(prediction,geneExpressionDataMatrix, phenotypeData, cellSp
         NA
       }
     }))
-    
+
     meanRatio = as.data.frame(t(do.call(cbind, lapply(unique(genesToRunRep), function(currGene){
       nonNAs = which(!is.na(repScores[currGene==genesToRunRep]))
       repetitivity = length(nonNAs)/numberOfRepeats
@@ -642,12 +646,63 @@ robustness = function(prediction,geneExpressionDataMatrix, phenotypeData, cellSp
     }))))
     colnames(meanRatio) = c("Repetitivity","Average rank mean","Average rank Sd")
     row.names(meanRatio) = genesToRun
-    
-    return(meanRatio) 
+
+    return(meanRatio)
   }
 }
 
 
+#' Uniqueness check for CENA predictions
+#'
+#' The uniqueness function takes CENA results, and for each gene,samples subset of cells multiple times in the size of the original cluster and compares
+#' the r-square of CENA to the r-squares of the sampled clusters.
+#'
+#' @param prediction The result of the CENA run.
+#' @param geneExpressionDataMatrix A matrix containing the single-cell RNA-seq data.
+#' Each row corresponds to a certain gene and each column to a certain cell.
+#' The algorithm assumes the order of the cells in this scRNA-seq data matrix is the same as the order in the meta-data feature (‘phenotypeData’) and the cell-state space (‘cellSpace’) parameters.
+#' @param phenotypeData A vector containing the meta-data levels of each of the cells.
+#' @param cellSpace The cell space corresponding to the single-cell data. It should be a matrix for a 2 dimensional space where each column represents a dimension and each row represents a cell.
+#' @param genesToRun A vector of genes for which robustness will be calculated. Due to relatively long running times, it is advised to choose only genes with informative clusters inferred by CENA.
+#' @param numberOfRepeats Number of sampled clusters to compare the real r-square to. The default value is 1000.
+#' @return A vector of uniqueness p-values of each gene.
+#' @examples
+#' data(cellSpace)
+#' data(geneExpressionDataMatrix)
+#' data(phenotypeData)
+#' # running CENA on 5 genes
+#' results = CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
+#' uniquenessResults = uniqueness(results, geneExpressionDataMatrix, phenotypeData, cellSpace, genesToRun = row.names(geneExpressionDataMatrix), numberOfRepeats =1000)
+#' @export
+uniqueness = function(prediction,geneExpressionDataMatrix, phenotypeData, cellSpace, genesToRun = names(prediction$cluster),numberOfRepeats = 1000) {
+  indexesToRun = match(genesToRun, names(prediction$cluster))
+  distMatrix = fields::rdist(cellSpace)
+
+  if(any(is.na(indexesToRun)) | length(indexesToRun) != length(genesToRun) |
+     length(prediction$cluster[indexesToRun])==0|
+     length(which(unlist(lapply(prediction$cluster[indexesToRun],function(cluster){is.na(cluster)}))))>0) {
+    print("All genes must have a predicted cluster!")
+  } else{
+    print("Running the uniqueness check:")
+    p_values = sapply(indexesToRun,function(currGeneIndex){
+      real_r_square = prediction$cluster_information[currGeneIndex,"r_squared"]
+      r_squareds = sapply(seq(numberOfRepeats),function(rep){
+        center_cell = sample(1:nrow(cellSpace),1)
+        distanceToCenter = distMatrix[center_cell,]
+        distanceToCenter_order = order(distanceToCenter, decreasing = FALSE)
+        chosenCells = distanceToCenter_order[1:length(prediction$cluster[[currGeneIndex]])]
+        phen_data = phenotypeData[chosenCells]
+        gene_data = geneExpressionDataMatrix[currGeneIndex,chosenCells]
+        reg = stats::lm(gene_data ~ phen_data)
+        summary(reg)$r.squared
+      })
+      # a-parametric p-value calculation
+      length(which(real_r_square<r_squareds))/length(r_squareds)
+    })
+    names(p_values) = genesToRun
+    return(p_values)
+  }
+}
 #' The Cell Niche Associations (CENA) algorithm
 #'
 #' CENA is a method for a joint identification of pairwise association together with
@@ -666,11 +721,11 @@ robustness = function(prediction,geneExpressionDataMatrix, phenotypeData, cellSp
 #' The algorithm assumes the order of the cells in this scRNA-seq data matrix is the same as the order in the meta-data feature (‘phenotypeData’) and the cell-state space (‘cellSpace’) parameters.
 #' @param phenotypeData A vector containing the meta-data levels of each of the cells.
 #' @param cellSpace The cell space corresponding to the single-cell data. It should be a matrix for a 2 dimensional space where each column represents a dimension and each row represents a cell.
-#' @param resolution_parameter the resolution of the Leiden algorithm.
+#' @param resolution_parameter The resolution of the Leiden algorithm. Cutoff as desired; Higher values provide smaller clusters.
 #' @param no_cores A number for the amount of cores which will be used for the analysis. The defalt (NULL) is total number of cores minus 1.
-#' @param k1 The number of cells in a bin. The default value is 1 percentage of the cells.
-#' @param k2 The average number of neighbors of a cell should be k2. The default value is 10.
-#' @param minClusterVolume The minimum cell-subset size. The default value is 30.
+#' @param k1 The number of cells in a bin. The default value is 1 percentage of the cells. k1 should be kept relatively small.
+#' @param k2 The average number of neighbors of a cell should be k2. The default value is 10. k2 have relatively small effect on results.
+#' @param Tw The minimum cell-subset size. The default value is 30. Cutoff as desired; high values filter out small subsets.
 #' @param genesToRun A vector of genes for which associations should be inferred. The default value is all genes in the input scRNA-seq matrix.
 #' However, it is recommended to run on a selected number of genes, since the analysis may take a while.
 #' @param python_path The function uses python in order to run.
@@ -694,11 +749,11 @@ robustness = function(prediction,geneExpressionDataMatrix, phenotypeData, cellSp
 #' # running CENA on 5 genes
 #' results = CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
 #' @export
-CENA = function(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, genesToRun = row.names(geneExpressionDataMatrix), 
-                no_cores = NULL, k1 = NULL, k2 = 10, minClusterVolume = 30, python_path = NULL) {
+CENA = function(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, genesToRun = row.names(geneExpressionDataMatrix),
+                no_cores = NULL, k1 = NULL, k2 = 10, Tw = 30, python_path = NULL) {
     print("Running CENA (This might take a while):")
-    the_result = CENA_Main(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter,genesToRun, 
-                           no_cores, k1, k2, minClusterVolume, python_path)
+    the_result = CENA_Main(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter,genesToRun,
+                           no_cores, k1, k2, Tw, python_path)
     ##### Combining cell predictions #####
     print("Finalizing...")
     return(the_result)
