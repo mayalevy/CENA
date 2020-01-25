@@ -79,7 +79,7 @@ By changing the parameters of CENA function, the user may improve the results an
 * **resolution_parameter** is the resolution parameter of the community detection algorithm Leiden which is responsible for more communities. Cutoff as desired; Higher values provide smaller clusters.
 * **k1, k2** are responsible of the initial graph building, and hence for the connectivity of the graph and to the number of its edges. k1 should be kept relatively small. Default value of k1 is 1% of the cells. When running many genes, for leverage the running time, the user may take a rather small k2 for initial run which will take a sample of the whole graph, and then, for the more interesting genes choose a higher k2, which may take more time but will be more reliable. k2 have relatively small effect on results. Default value of k2 is 10.
 * **Tw** is the cluster size that the user wants to discover. Cutoff as desired; high values filter out small subsets. Default value is 30
-* **python_path** - in case of not using the default python, you should specify the location of python by this parameter.
+* **python_path** in case of not using the default python, you should specify the location of python by this parameter.
 
 A full description of the parameters and return values can be found in the help page of the package.
 
@@ -106,6 +106,17 @@ data(geneExpressionDataMatrix)
 data(phenotypeData)
 results = CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
 robustnessResults = robustness(results, geneExpressionDataMatrix,phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1, genesToRun = row.names(geneExpressionDataMatrix)[4:5])
+```
+### Specificity Analysis:
+Another post analysis method is the specificity analysis. After running CENA on many genes, one can choose a few of them and check the uniqueness of the chosen cluster. *uniquness* function compares the cluster that CENA chose to many randomly selected clusters of a specific gene and calculates its a-parametric p-value (low score means good score).
+#### Example:
+```
+data(cellSpace)
+data(geneExpressionDataMatrix)
+data(phenotypeData)
+# running CENA on 5 genes
+results = CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
+uniquenessResults = uniqueness(results, geneExpressionDataMatrix, phenotypeData, cellSpace, genesToRun = row.names(geneExpressionDataMatrix), numberOfRepeats =1000)
 ```
 ## Authors
 

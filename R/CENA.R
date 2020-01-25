@@ -654,7 +654,7 @@ robustness = function(prediction,geneExpressionDataMatrix, phenotypeData, cellSp
 
 #' Uniqueness check for CENA predictions
 #'
-#' The uniqueness function takes CENA results, and for each gene,samples subset of cells multiple times in the size of the original cluster and compares
+#' The uniqueness function takes CENA results, and for each gene, samples subset of cells multiple times in the size of the original cluster and compares
 #' the r-square of CENA to the r-squares of the sampled clusters.
 #'
 #' @param prediction The result of the CENA run.
