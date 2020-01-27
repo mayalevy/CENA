@@ -2,6 +2,6 @@
 
 export(CENA)
 export(robustness)
-export(uniqueness)
+export(specificity)
 importFrom(methods,new)
 importFrom(methods,setRefClass)

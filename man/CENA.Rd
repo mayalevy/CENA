@@ -12,52 +12,41 @@ CENA(geneExpressionDataMatrix, phenotypeData, cellSpace,
 \arguments{
 \item{geneExpressionDataMatrix}{A matrix containing the single-cell RNA-seq data.
 Each row corresponds to a certain gene and each column to a certain cell.
-The algorithm assumes the order of the cells in this scRNA-seq data matrix is the same as the order in the meta-data feature (‘phenotypeData’) and the cell-state space (‘cellSpace’) parameters.}
+The algorithm assumes the order of the cells in this scRNA-seq data matrix is the same as the order in the meta-data ('phenotypeData') and the cell-state space ('cellSpace').}
 
 \item{phenotypeData}{A vector containing the meta-data levels of each of the cells.}
 
-\item{cellSpace}{The cell space corresponding to the single-cell data. It should be a matrix for a 2 dimensional space where each column represents a dimension and each row represents a cell.}
+\item{cellSpace}{Cell coordinates matrix for the single-cell data. Each row represent a cell and each column corresponds to a specific dimension. Only 2-dim spaces are allowed.}
 
-\item{resolution_parameter}{The resolution of the Leiden algorithm. Cutoff as desired; Higher values provide smaller clusters.}
+\item{resolution_parameter}{The resolution parameter of Leiden. Cutoff as desired; Higher values provide smaller clusters.}
 
 \item{genesToRun}{A vector of genes for which associations should be inferred. The default value is all genes in the input scRNA-seq matrix.
-However, it is recommended to run on a selected number of genes, since the analysis may take a while.}
+However, to reduce running times, it is recommended to use a small subset of the genes.}
 
-\item{no_cores}{A number for the amount of cores which will be used for the analysis. The defalt (NULL) is total number of cores minus 1.}
+\item{no_cores}{The number of cores which will be used for the analysis. The defalt (NULL) is total number of cores minus 1.}
 
-\item{k1}{The number of cells in a bin. The default value is 1 percentage of the cells. k1 should be kept relatively small.}
+\item{k1}{The K1 parameter. The default value is 1 percentage of the cells. k1 should be kept relatively small.}
 
-\item{k2}{The average number of neighbors of a cell should be k2. The default value is 10. k2 have relatively small effect on results.}
+\item{k2}{The K2 paremeter. The default value is 10. k2 have relatively small effect on results.}
 
-\item{Tw}{The minimum cell-subset size. The default value is 30. Cutoff as desired; high values filter out small subsets.}
+\item{Tw}{The subset size cutoff (Tw). The default value is 30. Cutoff as desired; high values filter out small subsets.}
 
-\item{python_path}{The function uses python in order to run.
-This is the location of python on the machine. If not specified, the path is the default python path on the machine.
-Note that it should be python3 and the following libraries should be installed: numpy, igraph, leidenalg.}
+\item{python_path}{The location of python on the machine. If not specified, the default python path will be selected.
+Note that python3 and the following libraries should be installed: numpy, igraph, leidenalg.}
 }
 \value{
-Predictions for each gene-vs-metadata analysis.
-For each such pair, the prediction includes details about the association (here, ‘cluster_information’) as well as details about the cell subset of the association (here, termed ‘cluster’).
 \describe{
- \itemize{cluster_information
- \item{r_squared}{ The r-square of the association between the expression of a gene and the meta-data vectors}
- \item{slope}{ The slope of the association between the expression of a gene and the meta-data vectors}
- \item{intercept}{ The intercept of the association between the expression of a gene and the meta-data vectors}
- \item{p_value}{ The p-value of the association between the expression of a gene and the meta-data vectors }
- }
- \item{cluster}{The identified cell subset in which the association holds. The cell subset is a vector of single cell located in the same region of the input cell-state space}
+ \item{cluster_information}{Association statistics for cell subsets obtained by CENA for each of the genes (rows).
+ Columns corresponds to the r.squared, slope, intercept and p.value of these associations.}
+ \item{cluster}{A list containing, for each gene, the identified cell subset in which the association occurs.}
+ \item{parameters}{The initial parameters used by CENA.}
 }
 }
 \description{
 CENA is a method for a joint identification of pairwise association together with
 the particular subset of cells in which the association is detected.
-CENA does not rely on predefined cell subset but only requires that cells in the
-identified cell subset would have a similar cell state. The algorithm relies on the
-input cell-state space to ensure a common cell state of all cells in the inferred cell subset.
-In this implementation, CENA tests association between multiple pairs of features:
-one of these features is the expression of a gene (data from scRNA-sequencing)
-and one additional feature is meta-data about each cell.
-The algorithm can run on a list of genes, associating each of these gene with the same meta-data feature.
+In this implementation, CENA is limited to associations between the genes' expression levels
+(data from scRNA-sequencing) and an additional cellular meta-data of choice.
 Note that python3 should be installed on the machine, with the following libraries: numpy, igraph, leidenalg.
 }
 \examples{

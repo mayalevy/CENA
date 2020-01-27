@@ -1,29 +1,26 @@
 # CENA
 
-CENA (CEllular Niche Association), is a method for a joint identification of pairwise association together with the particular subset of cells in which the association is detected. The algorithm relies on the input cell-state space to ensure a common cell state of all cells in the inferred cell subset. In this implementation, CENA tests association between multiple pairs of features: the expression of each gene against one additional meta-data.
+CENA is a method for a joint identification of pairwise association together with the particular subset of cells in which the association is detected. In this implementation, CENA is limited to associations between the genes' expression levels (data from scRNA-sequencing) and an additional cellular meta-data of choice.
 
 
 ## Getting Started
 
-CENA can be installed on Mac, Windows or Linux platforms by the instructions below
+CENA can be installed on Mac, Windows or Linux platforms by following instructions below
 
 ## Prerequisites
 
 CENA is based on R but also requires python3 for running.
-For Windows, we strongly reccommend that python will be installed with conda (and not pure python) to ease the installation progress of the dependent libraries.
-In addition to R, for Windows users, Rtools should bIn addition to R, for Windows users, Rtools should be installed.
-e installed.
-
-
+For Windows, we strongly recommend that python will be installed with conda (and not pure python) to ease the installation progress of the dependent libraries.
+In addition to R, for Windows users, Rtools should be installed.
 
 ## Installing
 Please make sure that the R and python that you install are compatible with your machine (32/64 bit).
 ### R installation
-R can be downlowded and installed in the following link [download R](https://www.r-project.org/)
-For windows users, Rtools should be installed [download R-tools](https://cran.r-project.org/bin/windows/Rtools)
+R can be downloaded and installed in the following link [download R](https://www.r-project.org/).
+For windows users, Rtools should be installed [download R-tools](https://cran.r-project.org/bin/windows/Rtools).
 
 ### Python Installation
-Python 3 should be downloaded and installed by miniconda (especially for Windows users) by the following link [download miniconda](https://docs.conda.io/en/latest/miniconda.html).
+Python 3 should be downloaded and installed using miniconda [download miniconda](https://docs.conda.io/en/latest/miniconda.html). This is especially important for Windows users.
 #### Packages of python
 Dependent python libraries should be installed using the following commands:
 ```
@@ -31,11 +28,11 @@ conda install numpy
 conda install -c vtraag python-igraph
 conda install -c vtraag leidenalg
 ```
-Please add the python command to the PATH, such that it will be recognized when you type python in the terminal.
+Please add python to the environment path variable, such that it will be recognized when you type python in the terminal.
 
 ### Environment validation
-Before moving to running CENA, please validate by the following commands that everything is fine.
-#### Python is installed correcly
+Before running CENA, please validate the installation process by checking the following sections:
+#### Python is installed correctly
 Please type the following commands in the terminal:
 ```
 python # running python for making sure it works fine
@@ -43,7 +40,7 @@ python # running python for making sure it works fine
 import igraph # making sure the pakcage igraph is installed correctly
 import leidenalg # making sure the pakcage leidenalg is installed correctly
 ```
-If python is not recognized, make sure you have added the python path to the evnironment path variable (PATH). If one of the modules is not recognize please make sure that their installation succeed and was done on the current python.
+If python is not recognized, make sure you have added the python path to the evnironment path variable (PATH). If one of the modules is not recognize please repeat their installation and make sure to do so in the desired version of python.
 #### R and python are working fine together
 Please open R console and type the following R commands:
 ```
@@ -52,13 +49,12 @@ library(reticulate)
 reticulate::import("igraph") #makes sure igraph is installed correctly
 reticulate::import("leidenalg") # makes sure leidenalg is installed correctly
 ```
-In case it returns that a module is not found, make sure the packages are installed on python, and that you are using the correct python.
-Reticulate uses the default python, in case you have many python versions on our computer, please install these packages on the default one (the one you get when you type which python), or change the reticulate to work with another python by typing 
+If one of the modules is not found, make sure the packages are installed on python, and that you are using the correct version of python. Reticulate uses the default python. In case you have many python versions on our computer, please install these packages on the default one (the one you get when you type which python), or change the reticulate to work with another version of python by typing.
 ```
 py_config() # gives the direction of the current python
 reticulate::use_python(**the python path**)# change the python path
 ```
-Note: Reticulate has a bug. use_python does not work in Windows, so Windows uses may make sure the installation of the python packages is done on the default python (you can change the default python by adding the python the the beginnig of the environment PATH)
+Note: Reticulate has a bug. The function use_python does not work in Windows. Therefore, to use CENA on Windows please make sure to install all python packages on the default python version (you can change the default python by adding the python the at beginning of the environment PATH).
 
 ### CENA installation
 For installing CENA from github, please open an R console, and type to following commands:
@@ -70,15 +66,16 @@ library("CENA")
 ```
 ## Running CENA
 
-The required input data for CENA should be the cell space (usually obtained using a dimension reduction), a gene expression matrix (genes X cells) and a phenotype vector that we want to find association with.
+The required input data parameters for CENA are: 
+A single cell gene expression matrix (genes X cells), a meta-data vector that we want to find association with, a 2-dim cell space (usually obtained using a dimension reduction), and the resolution parameter of the Leiden algorithm.
 ### The main function of the package:
 ```
 CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter, no_cores = NULL, k1 = NULL, k2 = 10, Tw = 30, genesToRun = row.names(geneExpressionDataMatrix), python_path = NULL)
 ```
 By changing the parameters of CENA function, the user may improve the results and the performance of the algorithm.
 * **resolution_parameter** is the resolution parameter of the community detection algorithm Leiden which is responsible for more communities. Cutoff as desired; Higher values provide smaller clusters.
-* **k1, k2** are responsible of the initial graph building, and hence for the connectivity of the graph and to the number of its edges. k1 should be kept relatively small. Default value of k1 is 1% of the cells. When running many genes, for leverage the running time, the user may take a rather small k2 for initial run which will take a sample of the whole graph, and then, for the more interesting genes choose a higher k2, which may take more time but will be more reliable. k2 have relatively small effect on results. Default value of k2 is 10.
-* **Tw** is the cluster size that the user wants to discover. Cutoff as desired; high values filter out small subsets. Default value is 30
+* **k1, k2** are responsible of the initial graph building, and hence for the connectivity of the graph and to the number of its edges. k1 should be kept relatively small. Default value of k1 is 1% of the cells. k2 was shown to have a relatively small effect on results. Therefore, to improve running times, the user may reduce the level of k2 for an initial run, and then, choose a higher k2 only for a genes with a good association with the meta-data. Increasing the k2 parameter should slightly improve the robustness of the results. Default value of k2 is 10.
+* **Tw** is the subset size cutoff. Cutoff as desired; high values filter out small subsets. Default value is 30.
 * **python_path** in case of not using the default python, you should specify the location of python by this parameter.
 
 A full description of the parameters and return values can be found in the help page of the package.
@@ -96,8 +93,7 @@ results = CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_pa
 ```
 Please notice that python path should be specified if not installed in the standard location
 ### Robustness Analysis:
-After running CENA on many genes and choosing a few of them, one can run a robustness analysis for specific genes for checking the robustness of the gene results.
-*robustness* function runs the analysis multiple times for a specific gene and returns the percentage of runs in which the cluster was found again in adittion to a score in the rang of 0-1 which represents the cluster score (low score means good score).
+After obtaining some interesting gene associations using CENA, it is advised to check their robustness. The robustness function runs CENA many times for a specific list of genes and returns their robustness scores across these runs. The robustness function applies the same parameters used in the original run (For more information, Levy et al., 2020).
 #### Example:
 ```
 library("CENA")
@@ -105,10 +101,11 @@ data(cellSpace)
 data(geneExpressionDataMatrix)
 data(phenotypeData)
 results = CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
-robustnessResults = robustness(results, geneExpressionDataMatrix,phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1, genesToRun = row.names(geneExpressionDataMatrix)[4:5])
+genesWithClusters = row.names(geneExpressionDataMatrix)[which(!is.na(rowSums(results$cluster_information)))]
+robustnessResults = robustness(results, geneExpressionDataMatrix, phenotypeData, cellSpace, genesToRun = genesWithClusters, no_cores = 1)
 ```
 ### Specificity Analysis:
-Another post analysis method is the specificity analysis. After running CENA on many genes, one can choose a few of them and check the uniqueness of the chosen cluster. *uniquness* function compares the cluster that CENA chose to many randomly selected clusters of a specific gene and calculates its a-parametric p-value (low score means good score).
+Another post analysis is applied by the specificity function. After obtaining some interesting gene associations using CENA, it is advised to check their specificity compared to permutations of the data. The specificity function applies the same parameters used in the original run (For more information, Levy et al., 2020).
 #### Example:
 ```
 data(cellSpace)
@@ -116,7 +113,8 @@ data(geneExpressionDataMatrix)
 data(phenotypeData)
 # running CENA on 5 genes
 results = CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
-uniquenessResults = uniqueness(results, geneExpressionDataMatrix, phenotypeData, cellSpace, genesToRun = row.names(geneExpressionDataMatrix), numberOfRepeats =1000)
+genesWithClusters = row.names(geneExpressionDataMatrix)[which(!is.na(rowSums(results$cluster_information)))]
+specificityResults = specificity(results, geneExpressionDataMatrix, phenotypeData, cellSpace, genesToRun = genesWithClusters, no_cores = NULL, numberOfRepeats =100)
 ```
 ## Authors
 

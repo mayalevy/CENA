@@ -5,42 +5,40 @@
 \title{Robustness check for CENA predictions}
 \usage{
 robustness(prediction, geneExpressionDataMatrix, phenotypeData, cellSpace,
-  resolution_parameter, genesToRun = row.names(geneExpressionDataMatrix),
-  numberOfRepeats = 100, minCoverage = 0.5, ...)
+  genesToRun, no_cores = NULL, numberOfRepeats = 100,
+  minCoverage = 0.5)
 }
 \arguments{
-\item{prediction}{The result of the original CENA run.}
+\item{prediction}{The result of the original CENA run. The robustness scores are calculated based on the parameters used in this run.}
 
 \item{geneExpressionDataMatrix}{A matrix containing the single-cell RNA-seq data.
 Each row corresponds to a certain gene and each column to a certain cell.
-The algorithm assumes the order of the cells in this scRNA-seq data matrix is the same as the order in the meta-data feature (‘phenotypeData’) and the cell-state space (‘cellSpace’) parameters.}
+The algorithm assumes the order of the cells in this scRNA-seq data matrix is the same as the order in the meta-data ('phenotypeData') and the cell-state space ('cellSpace').}
 
 \item{phenotypeData}{A vector containing the meta-data levels of each of the cells.}
 
-\item{cellSpace}{The cell space corresponding to the single-cell data. It should be a matrix for a 2 dimensional space where each column represents a dimension and each row represents a cell.}
-
-\item{resolution_parameter}{the resolution of the Leiden algorithm.}
+\item{cellSpace}{Cell coordinates matrix for the single-cell data. Each row represent a cell and each column corresponds to a specific dimension. Only 2-dim spaces are allowed.}
 
 \item{genesToRun}{A vector of genes for which robustness will be calculated. Due to relatively long running times, it is advised to choose only genes with informative clusters inferred by CENA.}
+
+\item{no_cores}{The number of cores which will be used for the analysis. The defalt (NULL) is total number of cores minus 1.}
 
 \item{numberOfRepeats}{Number of CENA runs used to calculate cluster robustness. The default value is 100.}
 
 \item{minCoverage}{The minimum coverage required for matching between the predicted clusters and the clusters in each iteration. The default value is 0.5.}
-
-\item{...}{All other parameters used by CENA.}
 }
 \value{
 A matrix where rows are genes and columns are different robustness measures.
 \describe{
 \itemize{
- \item{Repetitivity: }{A fraction representing how much the predicted gene clusters are shared across iterations. }
- \item{Average rank mean: }{ Average cluster scores. Values range between 0 to 1, where a lower value means the perdicted gene cluster is more likely to be selected across iterations. }
- \item{Average rank Sd: }{ The standard variation of cluster scores across iterations. }
+ \item{Repetitivity: }{ A fraction representing how much the predicted gene clusters are shared across iterations. }
+ \item{Normalized ranking mean: }{ Normalized ranking scores mean. Values range between 0 to 1, where a lower value means the perdicted gene cluster is more likely to be selected across iterations. }
+ \item{Normalized ranking Sd: }{ Normalized ranking scores standard deviation across all robustness iterations. }
  }
 }
 }
 \description{
-The robustness function runs CENA multiple times, for a small subset of the genes, and provides quantitative robustness scores for their predicted clusters across iterations.
+Calculate the robustness scores for selected genes.
 }
 \examples{
 data(cellSpace)
@@ -48,5 +46,6 @@ data(geneExpressionDataMatrix)
 data(phenotypeData)
 # running CENA on 5 genes
 results = CENA(geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, no_cores = 1)
-robustnessResults = robustness(results, geneExpressionDataMatrix, phenotypeData, cellSpace, resolution_parameter = 8, genesToRun = row.names(geneExpressionDataMatrix), no_cores = 1)
+genesWithClusters = row.names(geneExpressionDataMatrix)[which(!is.na(rowSums(results$cluster_information)))]
+robustnessResults = robustness(results, geneExpressionDataMatrix, phenotypeData, cellSpace, genesToRun = genesWithClusters, no_cores = 1)
 }
